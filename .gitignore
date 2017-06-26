@@ -3,12 +3,23 @@
 *.swp
 
 
+## eclipse project files
+.cproject
+.project
+.settings/
+
+
 ## C++ build products
 *.o
 *.obj
 *.a
 *.dll
 *.so
+
+
+## installation headers
+include/
+lib/
 
 
 ## MarkDown temporary files
