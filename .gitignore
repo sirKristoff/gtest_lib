@@ -1,0 +1,15 @@
+## Editors temporary files
+*~
+*.swp
+
+
+## C++ build products
+*.o
+*.obj
+*.a
+*.dll
+*.so
+
+
+## MarkDown temporary files
+*.md.html
