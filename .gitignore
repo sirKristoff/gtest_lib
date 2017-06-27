@@ -9,10 +9,15 @@
 .settings/
 
 
-## C++ build products
+## Compiled Object files
 *.o
 *.obj
+
+## Compiled Static libraries
 *.a
+*.lib
+
+## Compiled Dynamic libraries
 *.dll
 *.so
 
