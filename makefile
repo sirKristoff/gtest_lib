@@ -33,7 +33,15 @@ GTEST_ALL = $(GTEST_DIR)/src/gtest-all.cc
 
 GMOCK_SRCS = $(GMOCK_DIR)/src/*.cc
 GMOCK_MAIN = $(GMOCK_DIR)/src/gmock_main.cc
-GMOCK_ALL = $(GTEST_DIR)/src/gmock-all.cc
+GMOCK_ALL = $(GMOCK_DIR)/src/gmock-all.cc
+
+
+TARGETS := gtest gtest_main gmock gmock_main
+LIB_PREFIX := lib
+AR_EXT := .a
+DLL_EXT := .so
+ARCHIVES := $(addprefix $(LIB_PREFIX),$(addsuffix $(AR_EXT),$(TARGETS)))
+LIBRARIES := $(addprefix $(LIB_PREFIX),$(addsuffix $(DLL_EXT),$(TARGETS)))
 
 
 RM := rm -rf
@@ -42,6 +50,7 @@ CP := cp -r
 
 ## Rules for targets
 
+.PHONY:  all
 all :  includes libs
 
 
@@ -51,46 +60,60 @@ all :  includes libs
 # on whether it defines its own main() function.
 # It's fine if your test only uses features from Google
 # Test (and not Google Mock).
-archives :  libgtest.a libgtest_main.a libgmock.a libgmock_main.a
+.PHONY:  archives libraries
+archives :  $(ARCHIVES)
+libraries :  $(LIBRARIES)
 
 
+.PHONY:  includes libs
 includes :  
 	$(CP) -t . $(GTEST_DIR)/include $(GMOCK_DIR)/include
 	find ./include \( -name internal -o -name '*.pump' \) -exec rm -rf {} +
 
-libs :  libgtest.a libgtest_main.a libgmock.a libgmock_main.a
+## TODO: WARNING: Libraries need object files build with -fPIC flag
+##                but objects will not be rebuilded. 
+libs :  $(ARCHIVES) $(LIBRARIES)
 	install -d lib
 	install -t lib $^
 
+
+.PHONY:  clean
 clean :
-	$(RM) lib*.a *.o include/ lib/
+	$(RM) *.o *$(AR_EXT) *$(DLL_EXT) include/ lib/
 
 
+# Compile to object
 
-%.o :  $(GTEST_DIR)/src/%.cc
+%.o :  
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -o $@ -c $<
 
-%.o :  $(GMOCK_DIR)/src/%.cc
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -o $@ -c $<
-
-gtest-all.o :  $(GTEST_SRCS) $(GTEST_HEADERS)
+gtest-all.o :  $(GTEST_ALL) $(GTEST_SRCS) $(GTEST_HEADERS)
 gtest_main.o :  $(GTEST_MAIN) $(GTEST_HEADERS)
 
-gmock-all.o :  $(GMOCK_SRCS) $(GMOCK_HEADERS)
+gmock-all.o :  $(GMOCK_ALL) $(GMOCK_SRCS) $(GMOCK_HEADERS)
 gmock_main.o :  $(GMOCK_MAIN) $(GMOCK_HEADERS)
 gmock_main.o gmock-all.o :  CPPFLAGS += -isystem $(GMOCK_DIR)/include -I$(GMOCK_DIR)
 
 
 # Creating archives
 
-libgtest.a :  gtest-all.o
+%.a :
 	$(AR) $(ARFLAGS) $@ $^
 
+libgtest.a      :  gtest-all.o
 libgtest_main.a :  gtest-all.o gtest_main.o
-	$(AR) $(ARFLAGS) $@ $^
+libgmock.a      :  gtest-all.o gmock-all.o
+libgmock_main.a :  gtest-all.o gmock-all.o gmock_main.o
 
-libgmock.a :  gmock-all.o
-	$(AR) $(ARFLAGS) $@ $^
 
-libgmock_main.a :  gmock-all.o gmock_main.o
-	$(AR) $(ARFLAGS) $@ $^
+# Creating libraries
+
+## TODO: -fPIC should be removed from CXXFLAGS while building library
+%.so :  CXXFLAGS += -fPIC
+%.so :
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -shared -Wl,-soname,$@ -o $@ $^
+
+libgtest.so      :  gtest-all.o
+libgtest_main.so :  gtest-all.o gtest_main.o
+libgmock.so      :  gtest-all.o gmock-all.o
+libgmock_main.so :  gtest-all.o gmock-all.o gmock_main.o
