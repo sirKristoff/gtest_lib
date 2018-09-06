@@ -68,7 +68,7 @@ libraries :  $(LIBRARIES)
 
 .PHONY:  includes libs
 includes :  
-	$(CP) -t . $(GTEST_DIR)/include $(GMOCK_DIR)/include
+	$(CP) -t $(INSTALL_PREFIX) $(GTEST_DIR)/include $(GMOCK_DIR)/include
 	find $(INSTALL_PREFIX)/include -name '*.pump' -exec rm -rf {} +
 
 ## TODO: WARNING: Libraries need object files build with -fPIC flag
