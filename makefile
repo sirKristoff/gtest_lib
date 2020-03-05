@@ -11,7 +11,7 @@ GMOCK_DIR = googletest/googlemock
 CPPFLAGS += -isystem $(GTEST_DIR)/include -I$(GTEST_DIR)
 
 # Flags passed to the C++ compiler.
-CXXFLAGS += -g -Wall -Wextra -pthread
+CXXFLAGS += -g -Wall -Wextra -std=gnu++17 -pthread
 
 
 # All Google Test headers.
@@ -69,7 +69,8 @@ libraries :  $(LIBRARIES)
 .PHONY:  includes libs
 includes :  
 	$(CP) -t $(INSTALL_PREFIX) $(GTEST_DIR)/include $(GMOCK_DIR)/include
-	find $(INSTALL_PREFIX)/include -name '*.pump' -exec rm -rf {} +
+	find $(INSTALL_PREFIX)/include/gmock -name '*.pump' -exec rm -rf {} +
+	find $(INSTALL_PREFIX)/include/gtest -name '*.pump' -exec rm -rf {} +
 
 ## TODO: WARNING: Libraries need object files build with -fPIC flag
 ##                but objects will not be rebuilded. 
